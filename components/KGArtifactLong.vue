@@ -176,6 +176,18 @@
         <v-divider class="mx-4"></v-divider>
       </div>
 
+      <div v-if="labels.length">
+        <v-card-title class="py-0">Labels</v-card-title>
+        <ArtifactChips
+          :field="labels"
+          type="label"
+          display
+          link
+        ></ArtifactChips>
+
+        <v-divider class="mx-4"></v-divider>
+      </div>
+
       <div v-if="languages.length > 0">
         <v-card-title class="py-0">Programming Languages</v-card-title>
         <ArtifactChips
@@ -435,9 +447,9 @@
         </v-tooltip>
 
       </v-card-actions>
-      
+
     </v-card>
-    
+
     <template>
       <v-dialog v-model="diff_results_dialog" scrollable>
         <v-card>
@@ -563,9 +575,17 @@ export default {
           )
       }
     },
+    labels() {
+      if(this.record.artifact.labels.length > 0){
+        return this.record.artifact.labels
+      }
+
+    },
     tags() {
+      console.log(this.record.artifact)
       let tags = []
       if (this.record.artifact.tags.length > 0) {
+        
         return this.record.artifact.tags.map(e => e.tag)
       }
       let top = this.record.artifact.meta.find(o => o.name == 'top_keywords')
