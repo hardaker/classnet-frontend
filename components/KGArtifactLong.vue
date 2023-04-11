@@ -416,13 +416,36 @@
           </v-btn>
         </span>
         <v-btn
-          v-if="!(isOwner() || isAdmin())"
+          v-if="!(isOwner() || isAdmin()) && !artifactRequested "
           color="primary"
           @click="requestArtifact()"
           nuxt
         >
           Request
         </v-btn>
+        <v-btn
+          v-if="!(isOwner() || isAdmin()) && artifactRequested && !artifactReleased"
+          color="orange"
+          nuxt
+        >
+         Requested
+        </v-btn>
+
+        <v-tooltip top content-class="top"
+          v-if="!(isOwner() || isAdmin()) && artifactRequested && artifactReleased"
+        >
+          <template v-slot:activator="{ on }">
+            <v-btn
+             
+              color="green"
+              v-on="on"
+            >
+             {{ticket_status}}
+            </v-btn>
+          </template>
+          <span>Your dataset request has been approved and released (check your mailbox)</span>
+        </v-tooltip>
+
       </v-card-actions>
 
     </v-card>
@@ -506,13 +529,28 @@ export default {
       diff_results_dialog: false,
       diff_results_tab: "visual",
       loadingMessage: 'Loading...',
+      artifactRequested: false,
+      artifactReleased: false,
+
     }
   },
   mounted() {
     setTimeout(() => {
       this.loadingMessage = 'Error loading'
     }, 5000)
-
+  },
+  watch: {
+    record: {
+      immediate: true,
+      async handler(newVal, oldVal) {
+        if (newVal !== oldVal) {
+          await this.getTicketStatus()
+         
+          this.artifactRequested = this.ticket_status && this.ticket_status !== "unrequested"
+          this.artifactReleased = this.ticket_status && this.ticket_status == "released"
+        }
+      }
+    }
   },
   computed: {
     ...mapState({
@@ -522,7 +560,6 @@ export default {
     }),
     sanitizedDescription: function() {
       return this.$sanitize(this.record.artifact.description.replace(/\<\\pre\>/, ''))
-
     },
     favorite: {
       get() {
@@ -614,7 +651,7 @@ export default {
       this.record.artifact.files.map(f => {
         readmes = f.members.find(m => m.name.toUpperCase() == 'README.MD')
       })
-      console.log(readmes)
+      // console.log(readmes)
       if (typeof readmes !== 'undefined' && readmes.file_content)
          return atob(readmes.file_content.content)
     },
@@ -699,7 +736,7 @@ export default {
       this.diff_results = response.curations.map(
         function(x) { return { curation: x }; }
       )
-      console.log(this.diff_results)
+      // console.log(this.diff_results)
       for (var i = 0; i < this.diff_results.length; ++i) {
         // NB: opdata from server is a string, not JSON itself.
         this.diff_results[i].curation.opdata =
@@ -718,6 +755,10 @@ export default {
       } else {
         this.$router.push('/artifact/request/'+this.record.artifact.artifact_group_id)
       }
+    },
+    async getTicketStatus() {
+      let response = await this.$artifactRequestStatusEndpoint.show(this.record.artifact.artifact_group_id)
+      this.ticket_status = response.ticket_status
     },
   }
 }
