@@ -404,13 +404,21 @@
           </v-btn>
         </span>
         <v-btn
-          v-if="!(isOwner() || isAdmin())"
+          v-if="!(isOwner() || isAdmin()) && !artifactRequested "
           color="primary"
           @click="requestArtifact()"
           nuxt
         >
           Request
         </v-btn>
+        <v-btn
+          v-if="!(isOwner() || isAdmin()) && artifactRequested"
+          color="orange"
+          nuxt
+        >
+          Requested
+        </v-btn>
+       
       </v-card-actions>
       
     </v-card>
@@ -493,13 +501,33 @@ export default {
       diff_results: [],
       diff_results_dialog: false,
       diff_results_tab: "visual",
-      loadingMessage: 'Loading...'
+      loadingMessage: 'Loading...',
+      artifactRequested: false,
     }
   },
   mounted() {
     setTimeout(() => {
       this.loadingMessage = 'Error loading'
     }, 5000)
+  },
+  watch: {
+    record: {
+      immediate: true,
+      async handler(newVal, oldVal) {
+        if (newVal !== oldVal) {
+          await this.getTicketStatus()
+          console.log("artifact_group_id", this.record.artifact.artifact_group_id)
+
+          console.log("tick stat", this.ticket_status)
+
+         
+          this.artifactRequested = this.ticket_status && this.ticket_status !== "unrequested"
+          console.log("Artifact rquested?", this.ticket_status && this.ticket_status !== "unrequested")
+          console.log("Artifact rquested", this.artifactRequested)
+
+        }
+      }
+    }
   },
   computed: {
     ...mapState({
@@ -509,7 +537,6 @@ export default {
     }),
     sanitizedDescription: function() {
       return this.$sanitize(this.record.artifact.description.replace(/\<\\pre\>/, ''))
-      
     },
     favorite: {
       get() {
@@ -593,7 +620,7 @@ export default {
       this.record.artifact.files.map(f => {
         readmes = f.members.find(m => m.name.toUpperCase() == 'README.MD')
       })
-      console.log(readmes)
+      // console.log(readmes)
       if (typeof readmes !== 'undefined' && readmes.file_content)
          return atob(readmes.file_content.content)
     },
@@ -661,6 +688,7 @@ export default {
       })
       this.$router.push("/artifact/" + response.artifact.artifact_group_id
         + "/" + response.artifact.id + "?edit=true")
+      console.log("HIIIIIII")
     },
     async reImportNewVersion() {
       let response = await this.$artifactEndpoint.post(
@@ -678,7 +706,7 @@ export default {
       this.diff_results = response.curations.map(
         function(x) { return { curation: x }; }
       )
-      console.log(this.diff_results)
+      // console.log(this.diff_results)
       for (var i = 0; i < this.diff_results.length; ++i) {
         // NB: opdata from server is a string, not JSON itself.
         this.diff_results[i].curation.opdata =
@@ -697,6 +725,10 @@ export default {
       } else {
         this.$router.push('/artifact/request/'+this.record.artifact.artifact_group_id)
       }
+    },
+    async getTicketStatus() {
+      let response = await this.$artifactRequestStatusEndpoint.show(this.record.artifact.artifact_group_id)
+      this.ticket_status = response.ticket_status
     },
   }
 }
