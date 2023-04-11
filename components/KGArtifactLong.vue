@@ -412,13 +412,28 @@
           Request
         </v-btn>
         <v-btn
-          v-if="!(isOwner() || isAdmin()) && artifactRequested"
+          v-if="!(isOwner() || isAdmin()) && artifactRequested && !artifactReleased"
           color="orange"
           nuxt
         >
-          Requested
+         Requested
         </v-btn>
-       
+
+        <v-tooltip top content-class="top"
+          v-if="!(isOwner() || isAdmin()) && artifactRequested && artifactReleased"
+        >
+          <template v-slot:activator="{ on }">
+            <v-btn
+             
+              color="green"
+              v-on="on"
+            >
+             {{ticket_status}}
+            </v-btn>
+          </template>
+          <span>Your dataset request has been approved and released (check your mailbox)</span>
+        </v-tooltip>
+
       </v-card-actions>
       
     </v-card>
@@ -503,6 +518,8 @@ export default {
       diff_results_tab: "visual",
       loadingMessage: 'Loading...',
       artifactRequested: false,
+      artifactReleased: false,
+
     }
   },
   mounted() {
@@ -516,15 +533,9 @@ export default {
       async handler(newVal, oldVal) {
         if (newVal !== oldVal) {
           await this.getTicketStatus()
-          console.log("artifact_group_id", this.record.artifact.artifact_group_id)
-
-          console.log("tick stat", this.ticket_status)
-
          
           this.artifactRequested = this.ticket_status && this.ticket_status !== "unrequested"
-          console.log("Artifact rquested?", this.ticket_status && this.ticket_status !== "unrequested")
-          console.log("Artifact rquested", this.artifactRequested)
-
+          this.artifactReleased = this.ticket_status && this.ticket_status == "released"
         }
       }
     }
@@ -688,7 +699,6 @@ export default {
       })
       this.$router.push("/artifact/" + response.artifact.artifact_group_id
         + "/" + response.artifact.id + "?edit=true")
-      console.log("HIIIIIII")
     },
     async reImportNewVersion() {
       let response = await this.$artifactEndpoint.post(
