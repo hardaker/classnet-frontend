@@ -64,9 +64,37 @@
 
         <v-spacer></v-spacer>
 
-        <v-btn color="primary" :to="`/artifact/request/${artifact.artifact.artifact_group_id}`" nuxt>
-          Request
+        <v-btn
+          v-if="!artifactRequested "
+          color="primary"
+          @click="requestArtifact()"
+          nuxt
+        >
+          Request Access
         </v-btn>
+        <v-btn
+          v-if="artifactRequested && !artifactReleased"
+          color="orange"
+          nuxt
+        >
+         Requested
+        </v-btn>
+
+        <v-tooltip top content-class="top"
+          v-if="artifactRequested && artifactReleased"
+        >
+          <template v-slot:activator="{ on }">
+            <v-btn
+             
+              color="green"
+              v-on="on"
+            >
+             {{ticket_status}}
+            </v-btn>
+          </template>
+          <span>Your dataset request has been approved and released (check your mailbox)</span>
+        </v-tooltip>
+
       </v-card-actions>
     </v-card>
     <div v-else>{{ loadingMessage }}</div>
@@ -96,17 +124,31 @@ export default {
   data() {
     return {
       loadingMessage: 'Loading...',
+      ticket_status: '',
+      artifactRequested: false,
+      artifactReleased: false,
       expanded: this.comments
         ? Array(this.comments.length)
             .fill(1)
             .map(Number.call, Number)
-        : []
+        : [],
+       
     }
   },
   mounted() {
     setTimeout(() => {
       this.loadingMessage = 'Error loading'
     }, 5000)
+  },
+  watch: {
+    artifact: {
+      immediate: true,
+      async handler(newVal, oldVal) {
+        if (newVal !== oldVal) {
+          await this.updateTicketStatus()
+        }
+      }
+    }
   },
   computed: {
     ...mapState({
@@ -170,7 +212,21 @@ export default {
     },
     iconImage(type) {
       return artifactIcon(type)
-    }
+    },
+    requestArtifact() {
+      if (!this.$auth.loggedIn) {
+        this.$router.push('/login')
+      } else {
+        this.$router.push('/artifact/request/'+this.artifact.artifact.artifact_group_id)
+      }
+    },
+    async updateTicketStatus() {
+      
+      let response = await this.$artifactRequestStatusEndpoint.show(this.artifact.artifact.artifact_group_id)
+      this.ticket_status = response.ticket_status
+      this.artifactRequested = this.ticket_status && this.ticket_status !== "unrequested"
+      this.artifactReleased = this.ticket_status && this.ticket_status == "released"
+    },
   }
 }
 </script>
