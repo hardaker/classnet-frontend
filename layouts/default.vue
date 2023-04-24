@@ -6,8 +6,8 @@
       :clipped="clipped"
       permanent
       fixed
-      app
-    >
+      app>
+
       <v-list>
         <v-list-item
           v-for="(item, i) in items"
@@ -138,11 +138,11 @@
               Google&nbsp;<v-icon small>mdi-google</v-icon>
             </v-btn>
           </v-list-item>
-          <v-list-item>
+          <!-- <v-list-item>
             <v-btn class="primary" nuxt @click="cilogonLogin()">
               CILogon&nbsp;<v-icon small>mdi-login</v-icon>
             </v-btn>
-          </v-list-item>
+          </v-list-item> -->
         </v-list>
       </v-menu>
     </v-app-bar>

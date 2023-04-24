@@ -4,6 +4,14 @@
       <v-container class="fill-height" fluid>
         <v-row align="center" justify="center">
           <v-col cols="12" sm="8" md="6">
+            <v-alert
+      icon="mdi-shield-lock-outline"
+      prominent
+      text
+      type="info"
+    >
+    The action you requested requires a login.  Please login via one of the following identity providers.
+    </v-alert>
             <v-card class="elevation-12">
               <v-toolbar color="primary" dark flat>
                 <v-toolbar-title>Login</v-toolbar-title>
@@ -16,9 +24,9 @@
                 <v-btn class="primary" nuxt @click="googleLogin()">
                   Google&nbsp;<v-icon small>mdi-google</v-icon>
                 </v-btn>
-                <v-btn class="primary" nuxt @click="cilogonLogin()">
+                <!-- <v-btn class="primary" nuxt @click="cilogonLogin()">
                   CILogon&nbsp;<v-icon small>mdi-login</v-icon>
-                </v-btn>
+                </v-btn> -->
               </v-card-actions>
             </v-card>
           </v-col>
