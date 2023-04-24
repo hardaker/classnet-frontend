@@ -153,6 +153,7 @@
 
 <script>
 import { mapState } from 'vuex'
+import axios from 'axios'
     export default {
   components: {
     Logo: () => import('@/components/Logo'),
@@ -165,6 +166,7 @@ import { mapState } from 'vuex'
       titles: [],
       artifact_ids: [],
       selectedName: '',
+      github: '',
       selectedFile: '',
       labelLink: '',
       labelType: '',
@@ -182,12 +184,14 @@ import { mapState } from 'vuex'
       pages: state => state.artifacts.artifacts.pages,
       total: state => state.artifacts.artifacts.total,
       search_init: state => state.artifacts.search,
+      user: state => state.user.user,
     })
 
   },
   async created() {
     if (!this.$auth.loggedIn){
       this.$router.push('/login')
+      return
     }
     let payload = {
           keywords: "",
@@ -203,10 +207,15 @@ import { mapState } from 'vuex'
         }
         console.log(this.artifacts[0])
         console.log(this.titles)
+        console.log(this.user)
+        let res = await axios.get("https://api.github.com/search/users?q="+this.user["email"])
+        this.labelLink = "https://www.github.com/" + res["data"]["items"][0]["login"]
+
   },
   mounted() {
 
     console.log(this.artifacts[0])
+    console.log(this.user)
 
   },
   methods: {
