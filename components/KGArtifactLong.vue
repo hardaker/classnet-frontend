@@ -176,7 +176,7 @@
         <v-divider class="mx-4"></v-divider>
       </div>
 
-      <div v-if="labels.length">
+      <div v-if="labels && labels.length">
         <v-card-title class="py-0">Labels</v-card-title>
         <ArtifactChips
           :field="labels"
@@ -421,7 +421,7 @@
           @click="requestArtifact()"
           nuxt
         >
-          Request
+          Request Access
         </v-btn>
         <v-btn
           v-if="!(isOwner() || isAdmin()) && artifactRequested && !artifactReleased"
@@ -544,10 +544,7 @@ export default {
       immediate: true,
       async handler(newVal, oldVal) {
         if (newVal !== oldVal) {
-          await this.getTicketStatus()
-         
-          this.artifactRequested = this.ticket_status && this.ticket_status !== "unrequested"
-          this.artifactReleased = this.ticket_status && this.ticket_status == "released"
+          await this.updateTicketStatus()
         }
       }
     }
@@ -756,9 +753,11 @@ export default {
         this.$router.push('/artifact/request/'+this.record.artifact.artifact_group_id)
       }
     },
-    async getTicketStatus() {
+    async updateTicketStatus() {
       let response = await this.$artifactRequestStatusEndpoint.show(this.record.artifact.artifact_group_id)
       this.ticket_status = response.ticket_status
+      this.artifactRequested = this.ticket_status && this.ticket_status !== "unrequested"
+      this.artifactReleased = this.ticket_status && this.ticket_status == "released"
     },
   }
 }

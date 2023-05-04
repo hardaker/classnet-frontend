@@ -7,7 +7,7 @@
     ></ArtifactCommentView>
 
     <v-container
-      v-if="$auth.loggedIn && !alreadyCommented"
+      v-if="$auth.loggedIn && !alreadyCommented && artifactReleased"
       fill-height
       fluid
       grid-list-xl
@@ -102,7 +102,19 @@ export default {
     return {
       valid: true,
       comment: '',
-      rating: 0
+      rating: 0,
+      ticket_status: '',
+      artifactReleased: false
+    }
+  },
+  watch: {
+    artifact: {
+      immediate: true,
+      async handler(newVal, oldVal) {
+        if (newVal !== oldVal) {
+          await this.updateTicketStatus()
+        }
+      }
     }
   },
   computed: {
@@ -123,6 +135,11 @@ export default {
         return true
       return false
     }
+  },
+  async mounted() {
+    this.$store.dispatch('artifacts/fetchArtifact', {
+      artifact_group_id: this.$route.params.id
+    })
   },
   methods: {
     async onSubmit() {
@@ -157,12 +174,13 @@ export default {
         } else {
         }
       }
-    }
+    },
+    async updateTicketStatus() {
+      let response = await this.$artifactRequestStatusEndpoint.show(this.artifact.artifact.artifact_group_id)
+      this.ticket_status = response.ticket_status
+      this.artifactReleased = this.ticket_status && this.ticket_status == "released"
+    },
   },
-  mounted() {
-    this.$store.dispatch('artifacts/fetchArtifact', {
-      artifact_group_id: this.$route.params.id
-    })
-  }
+  
 }
 </script>
