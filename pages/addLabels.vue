@@ -174,7 +174,9 @@ import axios from 'axios'
       errorMessage2: '',
       dialog: false,
       nameToID: {},
-        types: ['presentation', 'publication', 'dag', 'argus', 'pcap',  'netflow', 'flowtools', 'flowride', 'fsdb', 'csv', 'custom'],
+      types: ['presentation', 'publication', 'dag', 'argus', 'pcap',  'netflow', 'flowtools', 'flowride', 'fsdb', 'csv', 'custom'],
+      requestedIdToStatus: {},
+
     }
   },
   computed: {
@@ -199,17 +201,28 @@ import axios from 'axios'
           items_per_page: this.limit,
           type: this.types
         }
-        await this.$store.dispatch('artifacts/fetchArtifacts', payload)
-        for (let i of this.artifacts){
-          this.titles.push(i.title)
-          this.artifact_ids.push(i.id)
-          this.nameToID[i.title] =i.id
-        }
-        console.log(this.artifacts[0])
-        console.log(this.titles)
-        console.log(this.user)
-        let res = await axios.get("https://api.github.com/search/users?q="+this.user["email"])
-        this.labelLink = "https://www.github.com/" + res["data"]["items"][0]["login"]
+
+    let response = await this.$artifactRequestListEndpoint.show([])
+    
+    let requestToTicketIDObj = response.requestToTicketIDObj
+    for (const [key, value] of Object.entries(requestToTicketIDObj)) {
+      let status = await this.$artifactRequestStatusEndpoint.show(key)
+      this.requestedIdToStatus[key] = status.ticket_status
+    }
+
+    await this.$store.dispatch('artifacts/fetchArtifacts', payload)
+    for (let i of this.artifacts){
+      if (this.requestedIdToStatus[i.id]=="released") {
+        this.titles.push(i.title)
+        this.artifact_ids.push(i.id)
+        this.nameToID[i.title] =i.id
+      }
+    }
+    console.log(this.artifacts[0])
+    console.log(this.titles)
+    console.log(this.user)
+    let res = await axios.get("https://api.github.com/search/users?q="+this.user["email"])
+    this.labelLink = "https://www.github.com/" + res["data"]["items"][0]["login"]
 
   },
   mounted() {
