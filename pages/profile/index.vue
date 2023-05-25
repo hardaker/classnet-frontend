@@ -541,7 +541,7 @@ export default {
     this.localuser = JSON.parse(JSON.stringify(this.user))
     this.userPosition = this.position
   },
-  async created() {
+  created() {
     $RefParser.dereference(schemaWithPointers, (err, schema) => {
       if (err) {
         console.error(err)
