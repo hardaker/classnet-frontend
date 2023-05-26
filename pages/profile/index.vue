@@ -156,17 +156,17 @@
                   slider-color="white"
                   class="ml-4"
                 >
-                  <v-tab class="mr-3">
+                  <v-tab>
                     <v-icon class="mr-2">
-                      mdi-database
+                      mdi-help
                     </v-icon>
-                    Artifacts
+                    Requested
                   </v-tab>
-                  <v-tab class="mr-3">
+                  <v-tab>
                     <v-icon class="mr-2">
-                      mdi-star
+                      mdi-download
                     </v-icon>
-                    Ratings
+                    Available
                   </v-tab>
                   <v-tab>
                     <v-icon class="mr-2">
@@ -174,48 +174,28 @@
                     </v-icon>
                     Favorites
                   </v-tab>
+                  <v-tab class="mr-3">
+                    <v-icon class="mr-2">
+                      mdi-star
+                    </v-icon>
+                    Ratings
+                  </v-tab>
+                  <v-tab class="mr-3">
+                    <v-icon class="mr-2">
+                      mdi-database
+                    </v-icon>
+                    Artifacts
+                  </v-tab>
                 </v-tabs>
               </template>
 
               <v-tabs-items v-model="tabs">
                 <v-tab-item>
-                  <!-- artifacts -->
-                  <v-timeline align-top dense v-if="dashboard.owned_artifacts">
-                    <v-timeline-item
-                      v-for="item in sortedArtifacts"
-                      :key="item.id"
-                      :color="iconColor(item.type)"
-                      :icon="iconImage(item.type)"
-                      small
-                    >
-                      <div>
-                        <div class="font-weight-normal">
-                          <strong>{{ new Date(item.ctime) }}</strong>
-                        </div>
-                        <div>
-                          {{ item.title }}
-                          <v-btn
-                            class="v-btn--simple"
-                            color="primary"
-                            icon
-                            :to="`/artifact/${item.artifact_group_id}/${item.id}`"
-                            nuxt
-                          >
-                            <v-icon color="primary">
-                              mdi-arrow-top-right-thick
-                            </v-icon>
-                          </v-btn>
-                        </div>
-                      </div>
-                    </v-timeline-item>
-                  </v-timeline>
-                </v-tab-item>
-                <v-tab-item>
-                  <!-- ratings -->
+                  <!-- requested -->
                   <v-list
                     single-line
                     class="py-0"
-                    v-for="(item, i) in dashboard.given_ratings"
+                    v-for="(item, i) in requested_artifacts"
                     :key="i"
                   >
                     <v-list-item>
@@ -223,26 +203,67 @@
                         :field="[item.type]"
                         :type="item.type"
                       ></ArtifactChips>
-
-                      <v-list-item-title v-text="item.title" />
-
+                      <v-list-item-title
+                        v-text="item.title"
+                      ></v-list-item-title>
                       <div class="d-flex">
                         <v-tooltip top content-class="top">
                           <template v-slot:activator="{ attrs, on }">
-                            <v-chip
-                              color="amber"
-                              class="ma-2"
-                              label
-                              :to="`/artifact/review/${item.artifact_group_id}`"
+                            <v-btn
+                              class="v-btn--simple"
+                              color="primary"
+                              icon
+                              v-bind="attrs"
+                              v-on="on"
+                              :to="`/artifact/${item.artifact_group_id}`"
                               nuxt
                             >
-                              <v-avatar left>
-                                <v-icon> mdi-star </v-icon>
-                              </v-avatar>
-                              <div>{{ item.rating }}</div>
-                            </v-chip>
+                              <v-icon color="primary">
+                                mdi-arrow-top-right-thick
+                              </v-icon>
+                            </v-btn>
                           </template>
-                          <span>Goto Rating</span>
+                          <span>Goto Artifact</span>
+                        </v-tooltip>
+                      </div>
+                    </v-list-item>
+                    <v-divider />
+                  </v-list>
+                </v-tab-item>
+                <v-tab-item>
+                  <!-- available -->
+                  <v-list
+                    single-line
+                    class="py-0"
+                    v-for="(item, i) in released_artifacts"
+                    :key="i"
+                  >
+                    <v-list-item>
+                      <ArtifactChips
+                        :field="[item.type]"
+                        :type="item.type"
+                      ></ArtifactChips>
+                      <v-list-item-title
+                        v-text="item.title"
+                      ></v-list-item-title>
+                      <div class="d-flex">
+                        <v-tooltip top content-class="top">
+                          <template v-slot:activator="{ attrs, on }">
+                            <v-btn
+                              class="v-btn--simple"
+                              color="primary"
+                              icon
+                              v-bind="attrs"
+                              v-on="on"
+                              :to="`/artifact/${item.artifact_group_id}`"
+                              nuxt
+                            >
+                              <v-icon color="primary">
+                                mdi-arrow-top-right-thick
+                              </v-icon>
+                            </v-btn>
+                          </template>
+                          <span>Goto Artifact</span>
                         </v-tooltip>
                       </div>
                     </v-list-item>
@@ -288,6 +309,77 @@
                     </v-list-item>
                     <v-divider />
                   </v-list>
+                </v-tab-item>
+                <v-tab-item>
+                  <!-- ratings -->
+                  <v-list
+                    single-line
+                    class="py-0"
+                    v-for="(item, i) in dashboard.given_ratings"
+                    :key="i"
+                  >
+                    <v-list-item>
+                      <ArtifactChips
+                        :field="[item.type]"
+                        :type="item.type"
+                      ></ArtifactChips>
+
+                      <v-list-item-title v-text="item.title" />
+
+                      <div class="d-flex">
+                        <v-tooltip top content-class="top">
+                          <template v-slot:activator="{ attrs, on }">
+                            <v-chip
+                              color="amber"
+                              class="ma-2"
+                              label
+                              :to="`/artifact/review/${item.artifact_group_id}`"
+                              nuxt
+                            >
+                              <v-avatar left>
+                                <v-icon> mdi-star </v-icon>
+                              </v-avatar>
+                              <div>{{ item.rating }}</div>
+                            </v-chip>
+                          </template>
+                          <span>Goto Rating</span>
+                        </v-tooltip>
+                      </div>
+                    </v-list-item>
+                    <v-divider />
+                  </v-list>
+                </v-tab-item>
+                <v-tab-item>
+                  <!-- artifacts -->
+                  <v-timeline align-top dense v-if="dashboard.owned_artifacts">
+                    <v-timeline-item
+                      v-for="item in sortedArtifacts"
+                      :key="item.id"
+                      :color="iconColor(item.type)"
+                      :icon="iconImage(item.type)"
+                      small
+                    >
+                      <div>
+                        <div class="font-weight-normal">
+                          <strong>{{ new Date(item.ctime) }}</strong>
+                        </div>
+                        <div>
+                          {{ item.title }}
+                          <v-btn
+                            class="v-btn--simple"
+                            color="primary"
+                            icon
+                            :to="`/artifact/${item.artifact_group_id}/${item.id}`"
+                            nuxt
+                          >
+                            <v-icon color="primary">
+                              mdi-arrow-top-right-thick
+                            </v-icon>
+                          </v-btn>
+                        </div>
+                      </div>
+                    </v-timeline-item>
+                  </v-timeline>
                 </v-tab-item>
               </v-tabs-items>
             </material-card>
@@ -351,7 +443,9 @@ export default {
       orgSearch: null,
       interestSearch: null,
       localuser: null,
-      userPosition:null
+      userPosition:null,
+      requested_artifacts: [],
+      released_artifacts: []
     }
   },
   computed: {
@@ -430,6 +524,19 @@ export default {
     this.$store.dispatch('user/fetchInterests')
     let response = await this.$dashboardEndpoint.index()
     this.dashboard = response
+
+    for (let index in this.dashboard.requested_artifacts) {
+      let requested_artifact = this.dashboard.requested_artifacts[index]
+
+      let status = await this.$artifactRequestStatusEndpoint.show(requested_artifact.artifact_group_id)
+      if (status.ticket_status == "released") {
+        this.released_artifacts.push(requested_artifact)
+      } 
+      if (status.ticket_status != "unrequested" && status.ticket_status != "released") {
+        this.requested_artifacts.push(requested_artifact)
+      }
+    }
+
     this.userAffiliation = this.organization ? this.organization : []
     this.localuser = JSON.parse(JSON.stringify(this.user))
     this.userPosition = this.position
